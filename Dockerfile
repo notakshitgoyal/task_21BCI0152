@@ -16,4 +16,7 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p uploads
 
-CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:$PORT", "app:app"] 
+# Create a start script
+RUN echo '#!/bin/bash\ngu
+
+CMD ["./start.sh"] 

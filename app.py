@@ -178,7 +178,7 @@ def handle_page_change(data):
 # ... existing code ... 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 3000))
+    port = int(os.environ.get("PORT", 8080))
     socketio.run(app, 
                 host='0.0.0.0',
                 port=port,
