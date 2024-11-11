@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    {% include 'shared_styles.html' %}
+</head>
+<body>
+    <div class="container">
+        <h2>Viewing Session: {{ room }}</h2>
+        
+        <div class="pdf-viewer">
+            <img id="pdf-image" class="pdf-image" />
+        </div>
+        
+        <div id="page-info">Waiting for presenter...</div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentPage = 0;
+        let totalPages = 0;
+        
+        socket.emit('join', {room: '{{ room }}'});
+
+        socket.on('pdf_loaded', function(data) {
+            console.log('PDF loaded event received:', data);
+            
+            const pdfImage = document.getElementById('pdf-image');
+            pdfImage.src = data.image_data;
+            
+            currentPage = data.current_page;
+            totalPages = data.total_pages;
+            
+            updatePageInfo();
+        });
+
+        socket.on('page_changed', function(data) {
+            console.log('Page changed event received:', data);
+            
+            const pdfImage = document.getElementById('pdf-image');
+            pdfImage.src = data.image_data;
+            
+            currentPage = data.current_page;
+            updatePageInfo();
+        });
+
+        function updatePageInfo() {
+            if (totalPages > 0) {
+                document.getElementById('page-info').textContent = 
+                    `Page ${currentPage + 1} of ${totalPages}`;
+            } else {
+                document.getElementById('page-info').textContent = 
+                    'Waiting for presenter...';
+            }
+        }
+    </script>
+</body>
+</html> 

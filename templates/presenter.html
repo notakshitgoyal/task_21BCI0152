@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Presenter View</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    {% include 'shared_styles.html' %}
+</head>
+<body>
+    <div class="container">
+        <h2>Session Code: {{ room }}</h2>
+        
+        <div class="upload-section">
+            <input type="file" id="pdf-upload" accept=".pdf" />
+            <button onclick="uploadFile()">Upload PDF</button>
+        </div>
+        
+        <div class="pdf-viewer">
+            <img id="pdf-image" class="pdf-image" style="display: none;" />
+        </div>
+        
+        <div class="controls">
+            <button onclick="changePage(-1)">Previous</button>
+            <span id="page-info">Page 0 of 0</span>
+            <button onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentPage = 0;
+        let totalPages = 0;
+        
+        socket.emit('join', {room: '{{ room }}'});
+        
+        async function uploadFile() {
+            const fileInput = document.getElementById('pdf-upload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            console.log('Starting file upload:', file.name);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Upload response status:', response.status);
+                const responseText = await response.text();
+                console.log('Upload response text:', responseText);
+                
+                if (response.ok) {
+                    console.log('Upload successful');
+                } else {
+                    console.error('Upload failed:', responseText);
+                    alert('Upload failed: ' + responseText);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload error: ' + error.message);
+            }
+        }
+
+        socket.on('pdf_loaded', function(data) {
+            console.log('PDF loaded event received:', data);
+            
+            const pdfImage = document.getElementById('pdf-image');
+            pdfImage.src = data.image_data;
+            pdfImage.style.display = 'block';
+            
+            currentPage = data.current_page;
+            totalPages = data.total_pages;
+            
+            console.log(`Updated to page ${currentPage + 1} of ${totalPages}`);
+            updatePageInfo();
+        });
+
+        socket.on('page_changed', function(data) {
+            console.log('Page changed event received:', data);
+            
+            const pdfImage = document.getElementById('pdf-image');
+            pdfImage.src = data.image_data;
+            currentPage = data.current_page;
+            
+            console.log(`Changed to page ${currentPage + 1}`);
+            updatePageInfo();
+        });
+
+        function updatePageInfo() {
+            const pageInfo = `Page ${currentPage + 1} of ${totalPages}`;
+            document.getElementById('page-info').textContent = pageInfo;
+            console.log('Page info updated:', pageInfo);
+        }
+
+        function changePage(offset) {
+            const newPage = currentPage + offset;
+            console.log(`Attempting to change to page ${newPage + 1}`);
+            
+            if (newPage >= 0 && newPage < totalPages) {
+                socket.emit('change_page', { page: newPage });
+            } else {
+                console.log('Page change out of bounds');
+            }
+        }
+    </script>
+</body>
+</html> 

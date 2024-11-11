@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Co-Viewer - Home</title>
+    {% include 'shared_styles.html' %}
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Co-Viewer</h1>
+        <div>
+            <a href="{{ url_for('presenter_login') }}"><button class="button">Presenter Login</button></a>
+            <a href="{{ url_for('viewer_login') }}"><button class="button">Viewer Login</button></a>
+        </div>
+    </div>
+</body>
+</html> 
