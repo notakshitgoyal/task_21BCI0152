@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, session, redirect, url_for, s
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import secrets
 import os
-from pyngrok import ngrok
 import fitz  # PyMuPDF
 import base64
 from io import BytesIO
@@ -179,26 +178,9 @@ def handle_page_change(data):
 # ... existing code ... 
 
 if __name__ == '__main__':
-    # Create upload folder if it doesn't exist
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
-    try:
-        # Kill any existing ngrok processes
-        ngrok.kill()
-        
-        # Set up ngrok
-        ngrok.set_auth_token("2R18hFSNDWfNHx3Bmmta07KI4H1_328t6xKPC52PR6X172Zsw")
-        
-        # Connect with specific options
-        public_url = ngrok.connect(
-            addr="3000",
-            proto="http",
-            bind_tls=True
-        )
-        print(f" * Public URL: {public_url}")
-    except Exception as e:
-        print(f"Failed to start ngrok: {e}")
-        print("Running without ngrok tunnel...")
-    
-    # Run the app
-    socketio.run(app, host='0.0.0.0', port=3000, debug=True)
+    port = int(os.environ.get("PORT", 3000))
+    socketio.run(app, 
+                host='0.0.0.0',
+                port=port,
+                debug=False,
+                allow_unsafe_werkzeug=True)
